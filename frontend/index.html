@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #6c63ff;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #aaa;
+      font-size: 13px;
+      margin-bottom: 25px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select {
+      padding: 12px 15px;
+      border: 2px solid #eee;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: #6c63ff;
+    }
+    button.add-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button.add-btn:hover { opacity: 0.9; }
+    h2 {
+      color: #444;
+      font-size: 16px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9ff;
+      border-radius: 12px;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border-left: 4px solid #6c63ff;
+    }
+    .expense-info { display: flex; flex-direction: column; gap: 3px; }
+    .expense-title { font-weight: 600; color: #333; font-size: 15px; }
+    .expense-meta { font-size: 12px; color: #aaa; }
+    .expense-amount { font-weight: 700; color: #6c63ff; font-size: 16px; }
+    .delete-btn {
+      background: #ffe4e4;
+      color: #ff4d4d;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-left: 10px;
+      transition: background 0.2s;
+    }
+    .delete-btn:hover { background: #ffcccc; }
+    .empty { text-align: center; color: #ccc; font-size: 14px; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💸 Expense Tracker</h1>
+    <p class="subtitle">Track your spending easily</p>
+
+    <div class="form-group">
+      <input type="text" id="title" placeholder="✏️ Expense title" />
+      <input type="number" id="amount" placeholder="💰 Amount (₹)" />
+      <select id="category">
+        <option value="Food">🍔 Food</option>
+        <option value="Transport">🚌 Transport</option>
+        <option value="Shopping">🛍️ Shopping</option>
+        <option value="Other">📦 Other</option>
+      </select>
+      <button class="add-btn" onclick="addExpense()">+ Add Expense</button>
+    </div>
+
+    <h2>Your Expenses</h2>
+    <div id="expense-list"></div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5000/api/expenses';
+
+    async function loadExpenses() {
+      const res = await fetch(API);
+      const data = await res.json();
+      const list = document.getElementById('expense-list');
+      if (data.length === 0) {
+        list.innerHTML = '<p class="empty">No expenses yet! Add one above 🎉</p>';
+        return;
+      }
+      list.innerHTML = '';
+      data.forEach(exp => {
+        list.innerHTML += `
+          <div class="expense-item">
+            <div class="expense-info">
+              <span class="expense-title">${exp.title}</span>
+              <span class="expense-meta">${exp.category} • ${new Date(exp.date).toLocaleDateString()}</span>
+            </div>
+            <div style="display:flex; align-items:center;">
+              <span class="expense-amount">₹${exp.amount}</span>
+              <button class="delete-btn" onclick="deleteExpense(${exp.id})">🗑️</button>
+            </div>
+          </div>`;
+      });
+    }
+
+    async function addExpense() {
+      const title = document.getElementById('title').value;
+      const amount = document.getElementById('amount').value;
+      const category = document.getElementById('category').value;
+      if (!title || !amount) return alert('Please fill in all fields!');
+      await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, amount, category })
+      });
+      document.getElementById('title').value = '';
+      document.getElementById('amount').value = '';
+      loadExpenses();
+    }
+
+    async function deleteExpense(id) {
+      await fetch(`${API}/${id}`, { method: 'DELETE' });
+      loadExpenses();
+    }
+
+    loadExpenses();
+  </script>
+</body>
+</html>
