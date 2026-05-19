@@ -13,7 +13,7 @@ pipeline {
             steps {
                 echo 'Installing dependencies...'
                 dir('backend') {
-                    sh 'npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -21,14 +21,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                sh 'docker build -t expense-tracker .'
+                bat 'docker build -t expense-tracker .'
             }
         }
 
         stage('Run Docker Container') {
             steps {
                 echo 'Running Docker container...'
-                sh 'docker-compose up -d'
+                bat 'docker-compose up -d'
             }
         }
     }
